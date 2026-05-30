@@ -38,6 +38,8 @@ warnings.filterwarnings('ignore')
 # CONFIG
 # =============================================================================
 
+import streamlit as st
+FRED_API_KEY = st.secrets.get("FRED_API_KEY", "")
 FRED_API_KEY = ""  # Set via Streamlit secrets
 
 # Countries to track
