@@ -38,7 +38,7 @@ warnings.filterwarnings('ignore')
 # CONFIG
 # =============================================================================
 
-FRED_API_KEY = ""  # Get free key at fred.stlouisfed.org — takes 2 minutes
+FRED_API_KEY = ""  # Set via Streamlit secrets
 
 # Countries to track
 COUNTRIES = {
