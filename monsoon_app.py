@@ -209,11 +209,17 @@ with t1:
                 unsafe_allow_html=True)
 
     st.markdown("""<div class="finding-box"><div class="finding-text">
-        "The map shows which economies are currently Granger-causing inflation in others.
-        Red arrows indicate statistically significant transmission (p &lt; 0.05) in the latest
-        36-month rolling window. The thickness reflects significance strength.
+        "Dark red arrows = highly significant (p &lt; 0.01). Light red = significant (p &lt; 0.05).
+        Dashed gold = marginal (p &lt; 0.10). Use the slider to adjust the threshold.
         Based on Gokhale (2026): India → Singapore → UK is the documented core chain."
     </div></div>""", unsafe_allow_html=True)
+
+    sig_threshold = st.select_slider(
+        "Map significance threshold",
+        options=[0.01, 0.05, 0.10],
+        value=0.01,
+        format_func=lambda x: f"p < {x}"
+    )
 
     # Get latest p-value matrix
     latest_g = granger.sort_values('date').groupby(
@@ -237,7 +243,7 @@ with t1:
     fig_map = go.Figure()
 
     # Draw edges for significant pairs
-    sig_pairs = latest_g[latest_g['p_value'] < 0.05]
+    sig_pairs = latest_g[latest_g['p_value'] < sig_threshold]
     for _, row in sig_pairs.iterrows():
         c, e = row['cause'], row['effect']
         if c not in positions or e not in positions:
@@ -361,7 +367,7 @@ with t2:
 
     col_left, col_right = st.columns([1, 3])
     with col_left:
-        st.markdown("**Select economies**")
+        st.markdown("**Filter by role:**")
         show_upstream   = st.checkbox("Upstream EM", True)
         show_relay      = st.checkbox("Relay", True)
         show_downstream = st.checkbox("Downstream DM", True)
