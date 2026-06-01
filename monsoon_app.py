@@ -49,12 +49,11 @@ html,body,[class*="css"]{font-family:'IBM Plex Sans',sans-serif;background:var(-
 .stTabs [data-baseweb="tab"]{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#1B2A4A !important}
 .stTabs [aria-selected="true"]{color:#c4522e !important;font-weight:700}
 .stTabs [data-baseweb="tab-list"]{border-bottom:2px solid #d4c4a8}
-/* Force all text to be visible */
-.stMarkdown, .stMarkdown p, .stMarkdown li, .stMarkdown h1,
-.stMarkdown h2, .stMarkdown h3, .stMarkdown strong, .stMarkdown em,
+/* Force markdown text to be visible on light backgrounds */
+.stMarkdown p, .stMarkdown li, .stMarkdown h1,
+.stMarkdown h2, .stMarkdown h3, .stMarkdown strong,
 [data-testid="stMarkdownContainer"] p,
-[data-testid="stMarkdownContainer"] li,
-[data-testid="stMarkdownContainer"] *{color:#333333 !important}
+[data-testid="stMarkdownContainer"] li{color:#333333 !important}
 /* Checkbox labels */
 .stCheckbox label, .stCheckbox span, .stCheckbox p{color:#1B2A4A !important}
 /* Selectbox and slider labels */
@@ -67,15 +66,15 @@ html,body,[class*="css"]{font-family:'IBM Plex Sans',sans-serif;background:var(-
 /* Footer area */
 footer, .reportview-container .main footer{color:#666666 !important}
 .stApp footer{background:var(--parch) !important;color:#666 !important}
-/* General paragraphs */
-p{color:#333333 !important}
+/* General paragraphs — but NOT inside dark boxes */
+p:not(.finding-text):not(.signal-val):not(.masthead-title):not(.masthead-sub){color:#333333}
 /* Plotly legend text */
 .legendtext{fill:#333333 !important}
 
 .masthead{border-top:5px solid var(--navy);padding:28px 0 20px}
 .masthead-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--rust);text-transform:uppercase;margin-bottom:8px}
-.masthead-title{font-family:'Playfair Display',serif;font-size:44px;font-weight:700;color:var(--navy);line-height:1.1;margin-bottom:6px}
-.masthead-sub{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:#555;margin-bottom:10px}
+.masthead-title{font-family:'Playfair Display',serif;font-size:44px;font-weight:700;color:var(--navy) !important;line-height:1.1;margin-bottom:6px}
+.masthead-sub{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:#555 !important;margin-bottom:10px}
 .masthead-byline{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#666 !important;letter-spacing:1px}
 
 .signal-panel{border:2px solid var(--navy);background:white;padding:16px 20px;text-align:center;min-height:100px;display:flex;flex-direction:column;justify-content:center}
@@ -89,7 +88,8 @@ p{color:#333333 !important}
 
 .sec-hdr{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--rust);text-transform:uppercase;border-bottom:2px solid var(--navy);padding-bottom:5px;margin:24px 0 14px}
 .finding-box{background:var(--navy);border-radius:8px;padding:20px 24px;margin:12px 0}
-.finding-text{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:white;line-height:1.65;border-left:3px solid rgba(255,255,255,0.3);padding-left:14px}
+.finding-text{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:#FFFFFF !important;line-height:1.65;border-left:3px solid rgba(255,255,255,0.3);padding-left:14px}
+.finding-box p, .finding-box span, .finding-box div{color:#FFFFFF !important}
 
 .country-card{background:white;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:4px 0}
 .country-name{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;color:var(--navy) !important}
@@ -103,6 +103,13 @@ p{color:#333333 !important}
 
 #MainMenu{visibility:hidden}footer{visibility:hidden}header{visibility:hidden}
 .block-container{padding-top:1rem;max-width:1200px}
+
+/* White text inside navy backgrounds */
+[style*="background:var(--navy)"] *, [style*="background:#1B2A4A"] *,
+.finding-box *, .finding-box p, .finding-box div{color:#FFFFFF !important}
+/* Soften all black dataframe backgrounds */
+.stDataFrame thead tr th{background-color:var(--navy) !important;color:white !important}
+.stDataFrame tbody tr td{background-color:#FAFAF7 !important;color:#333333 !important}
 </style>
 """, unsafe_allow_html=True)
 
@@ -388,7 +395,8 @@ with t1:
     st.dataframe(
         sig_display[['Cause','Effect','p-value','Lag (M)','Direction']]
         .sort_values('p-value'),
-        use_container_width=True, hide_index=True
+        use_container_width=True,
+        hide_index=True
     )
 
 # ── TAB 2: CPI TRAJECTORIES ───────────────────────────────────────────────────
@@ -785,7 +793,15 @@ economies, and downstream advanced economy recipients.
          }[v['role']]}
         for v in COUNTRIES.values()
     ])
-    st.dataframe(roles_df, use_container_width=True, hide_index=True)
+    st.dataframe(
+        roles_df.style.set_properties(**{
+            'background-color': '#FAFAF7',
+            'color': '#333333',
+            'border-color': '#D4C4A8'
+        }),
+        use_container_width=True,
+        hide_index=True
+    )
 
     st.markdown("---")
     st.caption(
