@@ -219,8 +219,8 @@ with t1:
 
     sig_threshold = st.select_slider(
         "Map significance threshold",
-        options=[0.005, 0.01, 0.025, 0.05, 0.10],
-        value=0.01,
+        options=[0.001, 0.005, 0.01, 0.025, 0.05],
+        value=0.005,
         format_func=lambda x: f"p < {x}"
     )
 
