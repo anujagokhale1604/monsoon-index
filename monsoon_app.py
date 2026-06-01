@@ -236,6 +236,46 @@ with c5:
       <div class="signal-note">Gokhale (2026): p=0.028</div>
     </div>""", unsafe_allow_html=True)
 
+
+# ── NEXT SURGE WATCH ─────────────────────────────────────────────────────────
+# Find upstream countries with elevated CPI AND active transmission signals
+em_countries = [c for c, v in COUNTRIES.items() if v['role'] == 'upstream']
+dm_avg_now   = np.mean([latest_cpi.get(c, 0)
+                        for c, v in COUNTRIES.items() if v['role'] == 'downstream'])
+
+# Score each upstream country: CPI above DM avg + significant outbound transmission
+watch_scores = []
+for em in em_countries:
+    em_cpi = latest_cpi.get(em, 0)
+    if np.isnan(em_cpi):
+        continue
+    # Count significant outbound pairs
+    outbound = granger.sort_values('date').groupby(['cause','effect']).last().reset_index()
+    sig_out  = outbound[(outbound['cause']==em) & (outbound['p_value']<0.05)]
+    score    = (em_cpi - dm_avg_now) + len(sig_out) * 0.5
+    if em_cpi > dm_avg_now:
+        watch_scores.append((em, em_cpi, len(sig_out), score))
+
+watch_scores.sort(key=lambda x: -x[3])
+top_watch = watch_scores[:3]
+
+if top_watch:
+    watch_countries = ', '.join(
+        f"{COUNTRIES[c]['flag']} {COUNTRIES[c]['name']} ({cpi:.1f}%)"
+        for c, cpi, _, _ in top_watch
+    )
+    top_name  = COUNTRIES[top_watch[0][0]]['name']
+    top_cpi   = top_watch[0][1]
+    top_sigs  = top_watch[0][2]
+    watch_msg = (
+        f"{top_name} leads the watch list at {top_cpi:.1f}% with "
+        f"{top_sigs} active downstream transmission pair{'s' if top_sigs != 1 else ''}. "
+        f"{'Downstream CPI pressure expected in 2–3 months.' if top_sigs > 0 else 'Monitor for emerging transmission.'}"
+    )
+else:
+    watch_countries = "No upstream economies elevated above DM average"
+    watch_msg = "All upstream economies currently tracking below or near DM inflation levels. Surge risk is low."
+
 # Next Surge Watch box — full width below panels
 st.markdown("<div style='margin-top:12px'></div>", unsafe_allow_html=True)
 st.markdown(f"""<div class="watch-box">
