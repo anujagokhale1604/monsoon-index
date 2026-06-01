@@ -103,6 +103,11 @@ p:not(.finding-text):not(.signal-val):not(.masthead-title):not(.masthead-sub){co
 
 #MainMenu{visibility:hidden}footer{visibility:hidden}header{visibility:hidden}
 .block-container{padding-top:1rem;max-width:1200px}
+.watch-box{border:2px solid var(--rust);background:white;padding:20px 24px;text-align:left}
+.watch-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--rust);text-transform:uppercase;margin-bottom:8px}
+.watch-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;line-height:1.2}
+.watch-note{font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:#555;line-height:1.5}
+.watch-country{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--rust);margin-top:6px}
 
 /* White text inside navy backgrounds */
 [style*="background:var(--navy)"] *, [style*="background:#1B2A4A"] *,
@@ -231,7 +236,54 @@ with c5:
       <div class="signal-note">Gokhale (2026): p=0.028</div>
     </div>""", unsafe_allow_html=True)
 
+# Next Surge Watch box — full width below panels
+st.markdown("<div style='margin-top:12px'></div>", unsafe_allow_html=True)
+st.markdown(f"""<div class="watch-box">
+  <div class="watch-label">🌧️ Next Surge Watch — Answering the Question Above</div>
+  <div class="watch-title">{watch_msg}</div>
+  <div class="watch-country">Elevated upstream economies: {watch_countries}</div>
+</div>""", unsafe_allow_html=True)
+
 # ── TABS ──────────────────────────────────────────────────────────────────────
+# ── NEXT SURGE WATCH ─────────────────────────────────────────────────────────
+# Find upstream countries with elevated CPI AND active transmission signals
+em_countries = [c for c, v in COUNTRIES.items() if v['role'] == 'upstream']
+dm_avg_now   = np.mean([latest_cpi.get(c, 0)
+                        for c, v in COUNTRIES.items() if v['role'] == 'downstream'])
+
+# Score each upstream country: CPI above DM avg + significant outbound transmission
+watch_scores = []
+for em in em_countries:
+    em_cpi = latest_cpi.get(em, 0)
+    if np.isnan(em_cpi):
+        continue
+    # Count significant outbound pairs
+    outbound = granger.sort_values('date').groupby(['cause','effect']).last().reset_index()
+    sig_out  = outbound[(outbound['cause']==em) & (outbound['p_value']<0.05)]
+    score    = (em_cpi - dm_avg_now) + len(sig_out) * 0.5
+    if em_cpi > dm_avg_now:
+        watch_scores.append((em, em_cpi, len(sig_out), score))
+
+watch_scores.sort(key=lambda x: -x[3])
+top_watch = watch_scores[:3]
+
+if top_watch:
+    watch_countries = ', '.join(
+        f"{COUNTRIES[c]['flag']} {COUNTRIES[c]['name']} ({cpi:.1f}%)"
+        for c, cpi, _, _ in top_watch
+    )
+    top_name  = COUNTRIES[top_watch[0][0]]['name']
+    top_cpi   = top_watch[0][1]
+    top_sigs  = top_watch[0][2]
+    watch_msg = (
+        f"{top_name} leads the watch list at {top_cpi:.1f}% with "
+        f"{top_sigs} active downstream transmission pair{'s' if top_sigs != 1 else ''}. "
+        f"{'Downstream CPI pressure expected in 2–3 months.' if top_sigs > 0 else 'Monitor for emerging transmission.'}"
+    )
+else:
+    watch_countries = "No upstream economies elevated above DM average"
+    watch_msg = "All upstream economies currently tracking below or near DM inflation levels. Surge risk is low."
+
 t1, t2, t3, t4, t5 = st.tabs([
     "🗺️ Transmission Map",
     "📈 CPI Trajectories",
@@ -394,7 +446,25 @@ with t1:
 
     st.dataframe(
         sig_display[['Cause','Effect','p-value','Lag (M)','Direction']]
-        .sort_values('p-value'),
+        .sort_values('p-value')
+        .style
+        .set_properties(**{'background-color': '#FAF6F0', 'color': '#333333'})
+        .set_table_styles([
+            {'selector': 'thead tr th',
+             'props': [('background-color', '#1B2A4A'),
+                       ('color', 'white'),
+                       ('font-family', 'IBM Plex Mono'),
+                       ('font-size', '11px')]},
+            {'selector': 'tbody tr:nth-child(even) td',
+             'props': [('background-color', '#F3EDE3')]},
+            {'selector': 'tbody tr:nth-child(odd) td',
+             'props': [('background-color', '#FAF6F0')]},
+            {'selector': 'td',
+             'props': [('color', '#333333'),
+                       ('font-family', 'IBM Plex Sans'),
+                       ('font-size', '12px'),
+                       ('border-color', '#D4C4A8')]},
+        ]),
         use_container_width=True,
         hide_index=True
     )
@@ -794,11 +864,25 @@ economies, and downstream advanced economy recipients.
         for v in COUNTRIES.values()
     ])
     st.dataframe(
-        roles_df.style.set_properties(**{
-            'background-color': '#FAFAF7',
-            'color': '#333333',
-            'border-color': '#D4C4A8'
-        }),
+        roles_df
+        .style
+        .set_properties(**{'background-color': '#FAF6F0', 'color': '#333333'})
+        .set_table_styles([
+            {'selector': 'thead tr th',
+             'props': [('background-color', '#1B2A4A'),
+                       ('color', 'white'),
+                       ('font-family', 'IBM Plex Mono'),
+                       ('font-size', '11px')]},
+            {'selector': 'tbody tr:nth-child(even) td',
+             'props': [('background-color', '#F3EDE3')]},
+            {'selector': 'tbody tr:nth-child(odd) td',
+             'props': [('background-color', '#FAF6F0')]},
+            {'selector': 'td',
+             'props': [('color', '#333333'),
+                       ('font-family', 'IBM Plex Sans'),
+                       ('font-size', '12px'),
+                       ('border-color', '#D4C4A8')]},
+        ]),
         use_container_width=True,
         hide_index=True
     )
