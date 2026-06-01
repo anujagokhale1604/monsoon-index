@@ -49,17 +49,39 @@ html,body,[class*="css"]{font-family:'IBM Plex Sans',sans-serif;background:var(-
 .stTabs [data-baseweb="tab"]{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#1B2A4A !important}
 .stTabs [aria-selected="true"]{color:#c4522e !important;font-weight:700}
 .stTabs [data-baseweb="tab-list"]{border-bottom:2px solid #d4c4a8}
+/* Force all text to be visible */
+.stMarkdown, .stMarkdown p, .stMarkdown li, .stMarkdown h1,
+.stMarkdown h2, .stMarkdown h3, .stMarkdown strong, .stMarkdown em,
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li,
+[data-testid="stMarkdownContainer"] *{color:#333333 !important}
+/* Checkbox labels */
+.stCheckbox label, .stCheckbox span, .stCheckbox p{color:#1B2A4A !important}
+/* Selectbox and slider labels */
+.stSelectbox label, .stSlider label, .stSelectSlider label,
+[data-testid="stWidgetLabel"], [data-testid="stWidgetLabel"] p{color:#1B2A4A !important}
+/* Dataframe text */
+.stDataFrame, .dataframe{color:#333333 !important}
+/* Caption */
+.stCaption, .stCaption p{color:#666666 !important}
+/* Footer area */
+footer, .reportview-container .main footer{color:#666666 !important}
+.stApp footer{background:var(--parch) !important;color:#666 !important}
+/* General paragraphs */
+p{color:#333333 !important}
+/* Plotly legend text */
+.legendtext{fill:#333333 !important}
 
 .masthead{border-top:5px solid var(--navy);padding:28px 0 20px}
 .masthead-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--rust);text-transform:uppercase;margin-bottom:8px}
 .masthead-title{font-family:'Playfair Display',serif;font-size:44px;font-weight:700;color:var(--navy);line-height:1.1;margin-bottom:6px}
 .masthead-sub{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:#555;margin-bottom:10px}
-.masthead-byline{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#888;letter-spacing:1px}
+.masthead-byline{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#666 !important;letter-spacing:1px}
 
-.signal-panel{border:2px solid var(--navy);background:white;padding:20px 24px;text-align:center;height:110px;display:flex;flex-direction:column;justify-content:center}
-.signal-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;color:#888;text-transform:uppercase;margin-bottom:6px}
-.signal-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1}
-.signal-note{font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:#555;margin-top:5px}
+.signal-panel{border:2px solid var(--navy);background:white;padding:16px 20px;text-align:center;min-height:100px;display:flex;flex-direction:column;justify-content:center}
+.signal-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;color:#666;text-transform:uppercase;margin-bottom:6px}
+.signal-val{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;line-height:1.1;word-break:break-word}
+.signal-note{font-family:'IBM Plex Sans',sans-serif;font-size:10px;color:#555;margin-top:5px;line-height:1.4}
 .sv-active{color:var(--rust)}
 .sv-marginal{color:var(--gold)}
 .sv-quiet{color:var(--sage)}
@@ -70,14 +92,14 @@ html,body,[class*="css"]{font-family:'IBM Plex Sans',sans-serif;background:var(-
 .finding-text{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:white;line-height:1.65;border-left:3px solid rgba(255,255,255,0.3);padding-left:14px}
 
 .country-card{background:white;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:4px 0}
-.country-name{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;color:var(--navy)}
+.country-name{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;color:var(--navy) !important}
 .country-cpi{font-family:'Playfair Display',serif;font-size:22px;font-weight:700}
-.country-role{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#888;letter-spacing:1px;text-transform:uppercase}
+.country-role{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#888 !important;letter-spacing:1px;text-transform:uppercase}
 
 .pair-card{background:white;border-left:3px solid var(--navy);padding:10px 14px;margin:4px 0}
 .pair-sig{border-left-color:var(--rust)}
-.pair-name{font-size:12px;font-weight:600;color:var(--navy)}
-.pair-p{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#555}
+.pair-name{font-size:12px;font-weight:600;color:var(--navy) !important}
+.pair-p{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#555 !important}
 
 #MainMenu{visibility:hidden}footer{visibility:hidden}header{visibility:hidden}
 .block-container{padding-top:1rem;max-width:1200px}
@@ -161,10 +183,15 @@ st.markdown(f"""
 # ── SIGNAL PANELS ─────────────────────────────────────────────────────────────
 c1, c2, c3, c4, c5 = st.columns(5)
 with c1:
-    st.markdown(f"""<div class="signal-panel">
+    regime_short = {
+    'ACTIVE':   'Upstream pressure transmitting downstream.',
+    'MARGINAL': 'Transmission present, not dominant.',
+    'QUIET':    'No significant transmission detected.',
+}[latest_regime]
+st.markdown(f"""<div class="signal-panel">
       <div class="signal-label">Monsoon Regime</div>
       <div class="signal-val {regime_class}">{latest_regime}</div>
-      <div class="signal-note">{regime_note[:50]}...</div>
+      <div class="signal-note">{regime_short}</div>
     </div>""", unsafe_allow_html=True)
 with c2:
     ind_cpi = latest_cpi.get('IND', np.nan)
@@ -426,7 +453,7 @@ with t2:
                        tickfont=dict(color="#1B2A4A")),
             xaxis=dict(gridcolor="#EEEEEE", tickfont=dict(color="#1B2A4A")),
             legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center",
-                        bgcolor="rgba(0,0,0,0)", font=dict(size=10))
+                        bgcolor="rgba(0,0,0,0)", font=dict(size=10, color='#333333'))
         )
         st.plotly_chart(fig2, use_container_width=True)
 
