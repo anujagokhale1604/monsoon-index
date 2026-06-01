@@ -107,13 +107,16 @@ ROLE_COLORS = {'upstream': '#C0392B', 'relay': '#1B2A4A', 'downstream': '#27AE60
 
 @st.cache_data
 def load_data():
+    # Try loading pre-generated CSVs first
     try:
         cpi     = pd.read_csv('monsoon_data.csv',    index_col=0, parse_dates=True)
         granger = pd.read_csv('monsoon_granger.csv', parse_dates=['date'])
         signal  = pd.read_csv('monsoon_signal.csv',  index_col=0, parse_dates=True)
+        # Ensure p_values are proper floats not rounded to 0
+        granger['p_value'] = granger['p_value'].clip(lower=0.0001)
         return cpi, granger, signal
     except FileNotFoundError:
-        st.error("Data files not found. Run monsoon_index_pipeline.py first.")
+        st.error("Data files not found. Upload monsoon_data.csv, monsoon_granger.csv, monsoon_signal.csv to your GitHub repo.")
         st.stop()
 
 cpi, granger, signal = load_data()
@@ -216,7 +219,7 @@ with t1:
 
     sig_threshold = st.select_slider(
         "Map significance threshold",
-        options=[0.01, 0.05, 0.10],
+        options=[0.005, 0.01, 0.025, 0.05, 0.10],
         value=0.01,
         format_func=lambda x: f"p < {x}"
     )
@@ -242,7 +245,7 @@ with t1:
 
     fig_map = go.Figure()
 
-    # Draw edges for significant pairs
+    # Draw edges for significant pairs — cap at top 20 pairs by p-value
     sig_pairs = latest_g[latest_g['p_value'] < sig_threshold]
     for _, row in sig_pairs.iterrows():
         c, e = row['cause'], row['effect']
@@ -342,12 +345,13 @@ with t1:
     st.markdown('<div class="sec-hdr">Active Transmission Pairs (p < 0.05)</div>',
                 unsafe_allow_html=True)
 
-    sig_display = sig_pairs.copy()
+    # Show all significant pairs in table but sorted by p-value
+    sig_display = latest_g[latest_g['p_value'] < sig_threshold].nsmallest(30, 'p_value').copy()
     sig_display['Cause'] = sig_display['cause'].map(
         lambda x: f"{COUNTRIES[x]['flag']} {COUNTRIES[x]['name']}" if x in COUNTRIES else x)
     sig_display['Effect'] = sig_display['effect'].map(
         lambda x: f"{COUNTRIES[x]['flag']} {COUNTRIES[x]['name']}" if x in COUNTRIES else x)
-    sig_display['p-value'] = sig_display['p_value'].round(3)
+    sig_display['p-value'] = sig_display['p_value'].apply(lambda x: f'{x:.4f}')
     sig_display['Lag (M)'] = sig_display['lag']
     sig_display['Direction'] = sig_display['cause'].map(
         lambda x: COUNTRIES[x]['role'] if x in COUNTRIES else '') + ' → ' + \
