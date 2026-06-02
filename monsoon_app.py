@@ -453,9 +453,7 @@ with t1:
         )
 
     fig_map.update_layout(
-        **LAYOUT,
-        paper_bgcolor="#F3EDE3",
-        plot_bgcolor="#F3EDE3",
+        **{**LAYOUT, 'paper_bgcolor': '#F3EDE3', 'plot_bgcolor': '#F3EDE3'},
         height=520,
         margin=dict(l=20, r=20, t=40, b=20),
         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False,
