@@ -379,9 +379,9 @@ with t1:
             continue
         x0, y0 = positions[c]
         x1, y1 = positions[e]
-        alpha  = max(0.15, 1 - row['p_value'] * 10)
-        width  = max(0.5, (1 - row['p_value']) * 4)
-        color  = f"rgba(196,82,46,{alpha:.2f})"
+        # Single clean color — width encodes strength
+        width = max(1.0, 4.0 * (1 - row['p_value'] / sig_threshold))
+        color = "rgba(180,30,20,0.80)"
 
         # Arrow midpoint
         mx, my = (x0 + x1) / 2, (y0 + y1) / 2
@@ -406,7 +406,7 @@ with t1:
         fig_map.add_trace(go.Scatter(
             x=[x0, x1], y=[y0, y1],
             mode='lines',
-            line=dict(color="rgba(196,122,0,0.55)", width=1.2, dash='dot'),
+            line=dict(color="rgba(70,130,180,0.6)", width=1.2, dash='dot'),
             showlegend=False,
             hoverinfo='skip'
         ))
@@ -464,8 +464,8 @@ with t1:
     st.plotly_chart(fig_map, use_container_width=True)
 
     st.caption(
-        "Node size = current CPI level. Red edges = significant transmission (p<0.05). "
-        "Dashed gold = marginal (p<0.10). Rolling 36-month window."
+        "Node size = current CPI level. Red arrows = significant transmission. "
+        "Thickness = significance strength. Dashed blue = marginal. Rolling 36-month window."
     )
 
     # Significant pairs table
