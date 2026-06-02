@@ -338,8 +338,8 @@ with t1:
                 unsafe_allow_html=True)
 
     st.markdown("""<div class="finding-box"><div class="finding-text">
-        "Dark red arrows = highly significant (p &lt; 0.01). Light red = significant (p &lt; 0.05).
-        Dashed gold = marginal (p &lt; 0.10). Use the slider to adjust the threshold.
+        "Dark crimson (thick) = highly significant (p &lt; 0.01). Coral red (medium) = significant (p &lt; 0.05).
+        Dashed orange = marginal (p &lt; 0.10). Use the slider to adjust the threshold.
         Based on Gokhale (2026): India → Singapore → UK is the documented core chain."
     </div></div>""", unsafe_allow_html=True)
 
@@ -406,7 +406,7 @@ with t1:
         fig_map.add_trace(go.Scatter(
             x=[x0, x1], y=[y0, y1],
             mode='lines',
-            line=dict(color="rgba(184,134,11,0.25)", width=0.8, dash='dot'),
+            line=dict(color="rgba(196,122,0,0.55)", width=1.2, dash='dot'),
             showlegend=False,
             hoverinfo='skip'
         ))
@@ -453,7 +453,10 @@ with t1:
         )
 
     fig_map.update_layout(
-        **LAYOUT, height=520,
+        **LAYOUT,
+        paper_bgcolor="#F3EDE3",
+        plot_bgcolor="#F3EDE3",
+        height=520,
         margin=dict(l=20, r=20, t=40, b=20),
         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False,
                    range=[-4.5, 4.0]),
